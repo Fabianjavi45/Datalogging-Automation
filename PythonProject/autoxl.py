@@ -1,7 +1,7 @@
 #imports
 from calendar import month
 from gc import collect
-from pickle import FALSE
+from pickle import FALSE, NONE
 from openpyxl import Workbook, workbook, load_workbook
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font, Fill, NamedStyle
 from openpyxl.styles.numbers import FORMAT_DATE_XLSX15, FORMAT_DATE_DDMMYY
@@ -50,11 +50,11 @@ res={
         4:"F88486"
     }
 }
-headFont= Font(name="Verdana",sz= 18, bold=True)
+headFont= Font(name="Verdana",sz= 24, bold=True)
 alignCenter= Alignment(horizontal="center")
-tableFont= Font(name="Verdana",sz=18) 
+tableFont= Font(name="Verdana",sz=24) 
 thin_border= Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-TabColor=1
+TabColor=2
 
 class autoxl():
     def _init_(this,original,result):
@@ -94,14 +94,20 @@ class autoxl():
         t.value=int(iDs[oldCount])
         t.font=tableFont
         t.alignment=alignCenter
+        t.border= thin_border
         t=ws["B"+str(rowtoInsert)]
-        t.value=ws["B"+str(rowtoInsert+1)].value
+        if(ws["B"+str(rowtoInsert+1)].value==None):
+            t.value=ws["B"+str(rowtoInsert-1)].value
+        else:
+            t.value=ws["B"+str(rowtoInsert+1)].value
         t.font=tableFont
         t.alignment=alignCenter
+        t.border= thin_border
         t=ws["C"+str(rowtoInsert)]
         t.value=employeeNames[oldCount]
         t.font=headFont
         t.alignment=alignCenter
+        t.border= thin_border
         return
 
     def getNames(this,row):
@@ -126,9 +132,9 @@ class autoxl():
         t=ows[col+str(row)]
         effList=[]
         while(t.value[0]!="T"):
-            splitEff=t.value.split(' ')
+            splitEff=t.value.split("\xa0\xa0")
             splitEff=splitEff[1].split('%')
-            effList= effList + [splitEff[0]]
+            effList= effList + [float(splitEff[0])]
             row+=6
             t=ows[col+str(row)]
             last=ows["A"+str(row-1)]
@@ -201,7 +207,18 @@ class autoxl():
         date=firstSplit[1].split("}")
         date=date[0]
         return date
-        
+
+    def input_dead_day(this,ws,iDs,riDs,effList,firstEntry):
+        col=get_column_letter(firstEntry+3)
+        for i in range(0, len(iDs)):
+            if(riDs.index(iDs[i])!=ValueError):
+                row=riDs.index(iDs[i])+8
+                t=ws[col+str(row)]
+                t.value=float(effList[i])
+            t.font=tableFont
+            t.alignment=alignCenter
+            t.border= thin_border   
+
 class Date():
     def __init__(this,day,month,year):
         this.day=day
@@ -210,20 +227,20 @@ class Date():
     def getWeek(this):
         if(this.month==1 or this.month==3 or this.month==5 or this.month==7 
         or this.month==8 or this.month==10 or this.month==12):
-            if(this.day>24):
+            if(this.day>25):
                 newDay=6-(31-this.day)
                 newMonth=this.month+1
                 newWeek= Date(newDay,newMonth,this.year)
                 return newWeek
         if(this.month==4 or this.month==6 or this.month==9 or this.month==9 or this.month==11):
-            if(this.day>23):
+            if(this.day>24):
                 newDay=6-(30-this.day)
                 newMonth=this.month+1
                 newWeek= Date(newDay,newMonth,this.year)
                 return newWeek
             
         if(this.month==2):
-            if(this.day>21):
+            if(this.day>22):
                 newDay=6-(28-this.day)
                 newMonth=this.month+1
                 newWeek= Date(newDay,newMonth,this.year)
@@ -242,9 +259,11 @@ class Date():
         
         if(this.month==1 or this.month==3 or this.month==5 or this.month==7 
         or this.month==8 or this.month==10 or this.month==12):
-            if(this.day>24):
-                newDay=(7-weekDay)-(31-this.day)
-                newMonth=this.month+1
+            if(this.day>25):
+                newDay=(7-weekDay)+this.day
+                if(newDay>31):
+                    newDay=(7-weekDay)-(31-this.day)
+                newMonth=this.month
                 newWeek= Date(newDay,newMonth,this.year)
                 return newWeek
             else:
@@ -252,8 +271,10 @@ class Date():
                 endWeek= Date(newDay,this.month,this.year)
                 return endWeek
         if(this.month==4 or this.month==6 or this.month==9 or this.month==9 or this.month==11):
-            if(this.day>23):
-                newDay=(7-weekDay)-(30-this.day)
+            if(this.day>24):
+                newDay=(7-weekDay)+this.day
+                if(newDay>30):
+                    newDay=(7-weekDay)-(30-this.day)
                 newMonth=this.month+1
                 newWeek= Date(newDay,newMonth,this.year)
                 return newWeek
@@ -262,8 +283,10 @@ class Date():
                 endWeek= Date(newDay,this.month,this.year)
                 return endWeek    
         if(this.month==2):
-            if(this.day>21):
-                newDay=(7-weekDay)-(28-this.day)
+            if(this.day>22):
+                newDay=(7-weekDay)+this.day
+                if(newDay>28):
+                    newDay=(7-weekDay)-(28-this.day)
                 newMonth=this.month+1
                 newWeek= Date(newDay,newMonth,this.year)
                 return newWeek
@@ -358,8 +381,14 @@ def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
         for col in range(1,5):
             count=0
             colLetter= get_column_letter(col) 
+            weeklyCol=get_column_letter(10)
             for row in range(8,8+len(iDs)):
                 t=ws[colLetter+str(row)]
+                wt=ws[weeklyCol+str(row)]
+                wt.value= '=AVERAGE(D'+str(row)+':H'+str(row)+')'
+                wt.font=tableFont
+                wt.alignment=alignCenter
+                wt.border= thin_border
                 if(col==1):
                     t.value=int(iDs[count])
                     t.font=tableFont
@@ -383,18 +412,25 @@ def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
                     t.alignment=alignCenter
                     t.border= thin_border
                     count+=1
+
     else:
         col=get_column_letter(firstEntry+3)
         count=0
+        weeklyCol=get_column_letter(10)
         for row in range(8,8+len(iDs)):
-                t=ws[col+str(row)]
-                t.value=float(effList[count])
-                t.font=tableFont
-                t.alignment=alignCenter
-                t.border= thin_border
-                count+=1
+            wt=ws[weeklyCol+str(row)]
+            wt.value= '=AVERAGE(D'+str(row)+':H'+str(row)+')'
+            wt.font=tableFont
+            wt.alignment=alignCenter
+            wt.border= thin_border
+            t=ws[col+str(row)]
+            t.value=float(effList[count])
+            t.font=tableFont
+            t.alignment=alignCenter
+            t.border= thin_border
+            count+=1
     print("\nCompleting Employee Logging...")   
-    
+
 def fitTotext(firstEntry,ws,size):
     greatestWidth=0
     if(firstEntry<2):
@@ -407,7 +443,7 @@ def fitTotext(firstEntry,ws,size):
                 greatestWidth=greatestWidth*2.5
                 ws.column_dimensions[get_column_letter(col)].width=greatestWidth
             elif(col==9):
-                greatestWidth=1.17
+                greatestWidth=1.25
                 ws.column_dimensions[get_column_letter(col)].width=greatestWidth
             else:
                 greatestWidth=21.5
@@ -415,14 +451,15 @@ def fitTotext(firstEntry,ws,size):
     else:
         greatestWidth=21.5
         ws.column_dimensions[get_column_letter(firstEntry+3)].width=greatestWidth
+
 def main():
     startUp()
     #---------------Intial input of the two workbooks to work with-----------------#
 
     #orgReport=input('\nFile Name of the original report: ')
-    orgWB="original/OPR AGSU MAR 11.xlsx"
+    orgWB="original/OPR IWOL COM MAR 24.xlsx"
     #resReport=input('\nFile Name of Report to Create/Edit on: ')
-    resWB="results/Daily Eff. Report AGSUBC.xlsx"
+    resWB="results/Daily Eff. Report AGSUBC(T).xlsx"
 
     #---------------Initializing Global Variables---------------------------#
     p1=autoxl()
@@ -482,8 +519,7 @@ def main():
         print("\n\nPROGRAM END...")
     else:
         #Ask what day of the week is L=Lunes, M=Martes, W==Miercoles, J=Jueves, V=Viernes
-        weekDay=input("What day of the week is it? Please input day as: M=Martes, W==Miercoles, J=Jueves or V=Viernes: ")
-        #"M"
+        weekDay= "J" #input("What day of the week is it? Please input day as: M=Martes, W==Miercoles, J=Jueves or V=Viernes: ")
         date=p1.getDay()
         date=date.split("/")
         weekDate=Date(int(date[1]),int(date[0]),2000+int(date[2]))
@@ -493,8 +529,9 @@ def main():
         sheetDate=" "+str(endweekDate.day)+"-"+res["Months"].get(endweekDate.month)
         sheetNames=[]
         for i in range(0,len(Supervisors)):
+            two_diff=False
             firstName=Supervisors[i].upper()
-            sheetNames=sheetNames+[firstName+sheetDate] #Probably going to change for just first Name
+            sheetNames=sheetNames+[firstName+sheetDate] #Gets the name of the sheet based on the supervisors in the original report
             ws=p1.result[sheetNames[i]]
             print("\nStarting Employee Logging...")    
             iDs=p1.getIds(Divisionrows[i])
@@ -502,40 +539,54 @@ def main():
             employeeNames=p1.getNames(Divisionrows[i])
             effList=p1.getEff(Divisionrows[i]+1)
             #----------ID comparison to see if new entries were made----------#
-            oldCount=0
-            for newElement  in iDs:
-                if(len(riDs)-1==oldCount):
-                    if(newElement<riDs[oldCount]):
-                        p1.setNewEntries(ws,employeeNames,oldCount,iDs)
-                        oldCount-=1
-                    break
-                try:
-                    if(riDs.index(newElement)==ValueError):
-                        if(riDs.index(newElement)!=iDs.index(newElement)):
-                            diff=riDs.index(newElement)-iDs.index(newElement)
+            iCount=0
+            if(len(iDs)*2<len(riDs)):
+                p1.input_dead_day(ws,iDs,riDs,effList,dayNum)
+            else:
+                for (newElement,oldElement) in zip(iDs,riDs):
+                    if(two_diff):
+                        two_diff=False
+                        continue
+                    #Check if there are still new entries at the end of the new Report
+                    if(iCount==len(riDs)-1 and len(iDs)>len(riDs)):
+                        diff=len(iDs)-len(riDs)
+                        for i in range(0,diff):
+                            iCount+=1
+                            p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                    #Check if a new entry has to be added by comparing the positions of the current 
+                    # elements of each list
+                    if(oldElement>newElement):
+                        p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                        riDs.insert(iCount,newElement)
+                        iCount+=1
+                    #Checks if a new entry is already in the Eff. Report, If so then this new entry 
+                    # is added to the result Report
+                    elif(riDs.index(newElement)==ValueError):
+                        p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                        riDs.insert(iCount,newElement)
+                        iCount+=1
+                    #Checks the difference in position of a new entry that is already in the resulr 
+                    # report to correct the position of the efficiency to input
+                    else:
+                        diff=abs(riDs.index(newElement)-iDs.index(newElement))
+                        if(diff!=0):
                             for i in range(0,diff):
-                                effList.insert(oldCount,0)
-                                iDs.insert(oldCount,0)
-                                employeeNames.insert(oldCount," ")
-                except:
-                    print("Caught exepction")
-                #if(riDs[oldCount+1]==iDs[oldCount]):
-                   # effList.insert(oldCount,0)
-                    #iDs.insert(oldCount,0)
-                    #employeeNames.insert(oldCount," ")
-                if(newElement<riDs[oldCount]):
-                    p1.setNewEntries(ws,employeeNames,oldCount,iDs)
-                    oldCount-=1
-                print(newElement,riDs[oldCount])
-                oldCount+=1
-            #---------------Input new day entries---------------------------#
-            inputIDname(ws,iDs,employeeNames,effList,Departments,i,dayNum)
-            #---------------------------------------------------------------#
+                                        effList.insert(iCount,0)
+                                        iDs.insert(iCount,0)
+                                        employeeNames.insert(iCount," ")
+                            if(diff>1):
+                                two_diff=True
+                            iCount+=diff
+                        else:
+                            iCount+=1
+                #---------------Input new day entries---------------------------#
+                inputIDname(ws,iDs,employeeNames,effList,Departments,i,dayNum)
+                #---------------------------------------------------------------#
             #-------------------AutoFit Columns-----------------------------#
             fitTotext(dayNum, ws,len(effList))
         #-----end for-------------------------------------------------------#
         p1.result.save(resWB)
         print("\n\nPROGRAM END...")
-#TODO Apply borders and WEEKLY EFF COLUMN
+
 if __name__ == "__main__":
     main()
