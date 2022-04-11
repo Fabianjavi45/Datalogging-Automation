@@ -1,3 +1,4 @@
+
 for newElement  in iDs:
 
                 if(len(riDs)-1==oldCount):
@@ -25,3 +26,15 @@ for newElement  in iDs:
                     oldCount-=1
                 print(newElement,riDs[oldCount])
                 oldCount+=1
+
+#/********************************************************************\
+    #Check if there are still new entries at the end of the new Report
+                    #if(iCount==len(riDs)-1 and len(iDs)>len(riDs)):
+                        #diff=len(iDs)-len(riDs)
+                        #for i in range(0,diff):
+                           # iCount+=1
+                            #p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                            #riDs.insert(iCount,newElement)
+                        
+
+#*************************Piece of code in newEntry Algorithm*************************#

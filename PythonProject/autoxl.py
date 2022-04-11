@@ -48,13 +48,31 @@ res={
         2:"84F8B4",
         3:"84C8F8",
         4:"F88486"
+    },
+    "Prod_Eff":{
+        1:"META",
+        2:"RESULTADO",
+        3:"DIFERENCIA",
+        4:"ACUMULATIVO"
+    },
+    "Cost":{
+        1:"META",
+        2:"NOMINA (TPM)",
+        3:"COSTO POR UNIDAD",
+        4:"DIFERENCIA",
+        5:"ACUMULATIVO"
+    },
+    "Prod_Cost_Title":{
+        0:"PRODUCCION",
+        1:"EFICIENCIA",
+        2:"COSTO"
     }
 }
 headFont= Font(name="Verdana",sz= 24, bold=True)
 alignCenter= Alignment(horizontal="center")
 tableFont= Font(name="Verdana",sz=24) 
 thin_border= Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-TabColor=2
+TabColor=4
 
 class autoxl():
     def _init_(this,original,result):
@@ -220,10 +238,13 @@ class autoxl():
             t.border= thin_border   
 
 class Date():
+
     def __init__(this,day,month,year):
         this.day=day
         this.month=month
         this.year=year
+
+    #Gets the week 
     def getWeek(this):
         if(this.month==1 or this.month==3 or this.month==5 or this.month==7 
         or this.month==8 or this.month==10 or this.month==12):
@@ -247,6 +268,7 @@ class Date():
                 return newWeek
         newDay=this.day+6
         return Date(newDay,this.month,this.year)
+
     def getendWeek(this,weekDay):
         if(weekDay=="M"):
             weekDay=2
@@ -263,8 +285,10 @@ class Date():
                 newDay=(7-weekDay)+this.day
                 if(newDay>31):
                     newDay=(7-weekDay)-(31-this.day)
-                newMonth=this.month
-                newWeek= Date(newDay,newMonth,this.year)
+                    newMonth=this.month+1
+                    newWeek= Date(newDay,newMonth,this.year)
+                    return newWeek
+                newWeek= Date(newDay,this.month,this.year)
                 return newWeek
             else:
                 newDay=(7-weekDay)+this.day
@@ -275,8 +299,10 @@ class Date():
                 newDay=(7-weekDay)+this.day
                 if(newDay>30):
                     newDay=(7-weekDay)-(30-this.day)
-                newMonth=this.month+1
-                newWeek= Date(newDay,newMonth,this.year)
+                    newMonth=this.month+1
+                    newWeek= Date(newDay,newMonth,this.year)
+                    return newWeek
+                newWeek= Date(newDay,this.month,this.year)
                 return newWeek
             else:
                 newDay=(7-weekDay)+this.day
@@ -287,8 +313,10 @@ class Date():
                 newDay=(7-weekDay)+this.day
                 if(newDay>28):
                     newDay=(7-weekDay)-(28-this.day)
-                newMonth=this.month+1
-                newWeek= Date(newDay,newMonth,this.year)
+                    newMonth=this.month+1
+                    newWeek= Date(newDay,newMonth,this.year)
+                    return newWeek
+                newWeek= Date(newDay,this.month,this.year)
                 return newWeek
             else:
                 newDay=(7-weekDay)+this.day
@@ -375,7 +403,144 @@ def createHeader(ws,weekDate):
         t.font=headFont
         t.alignment=alignCenter
     print("Completed Heading Creation...")  
+#Creates the following 3 tables that display Production, Line Efficiency and Cost per Unit
 
+def create_prod_rep(ws, currRow):
+    print("Starting Production Section Creation...")
+    resValues=res["Prod_Eff"]
+    resValuesH=res["Heading"]
+    resTable=res["Prod_Cost_Title"]
+    resCost=res["Cost"]
+    org_row=currRow+7
+    currRow+=13
+    meta_cell=" "
+
+    for table in range(0,3):
+        for col in range(1,11):
+            if(col==1):
+                col1=get_column_letter(col)
+                col2=get_column_letter(col+1)
+                ws.merge_cells(col1+str(currRow)+":"+col2+str(currRow+2))
+                t=ws[col1+str(currRow)]
+                t.value=resTable.get(table)
+                t.font=headFont
+                t.alignment=alignCenter
+                t.border= thin_border
+            elif(col==3):
+                if(table!=2):
+                    col1=get_column_letter(col)
+                    count=0
+                    for i in range(1,4):
+                        t=ws[col1+str(currRow+count)]
+                        t.value=resValues.get(i)
+                        count+=1
+                        t.font=headFont
+                        t.alignment=alignCenter
+                        t.border= thin_border
+                else:
+                    col1=get_column_letter(col)
+                    count=0
+                    for i in range(1,5):
+                        t=ws[col1+str(currRow+count)]
+                        t.value=resCost.get(i)
+                        count+=1
+                        t.font=headFont
+                        t.alignment=alignCenter
+                        t.border= thin_border
+            #Columns where data in inputed with a formula at the last row to display difference between the data inputed.
+            elif(col>=4 and col<9):
+                if(table!=2):
+                    row=currRow-1
+                    dayCol=get_column_letter(col) 
+                    t=ws[dayCol+str(row)]
+                    t.value=resValuesH.get(col)
+                    t.font=headFont
+                    t.alignment=alignCenter
+                    t.border=thin_border
+                    t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
+                    meta_cell=dayCol+str(currRow)
+                    res_cell=dayCol+str(currRow+1)
+                    if(table==1):
+                        r_cell=ws[res_cell]
+                        r_cell.value="=AVERAGE("+dayCol+str(8)+":"+dayCol+str(org_row)+")"
+                        r_cell.border=thin_border
+                        r_cell.font=tableFont
+                        r_cell.alignment=alignCenter
+                    curr_cell=ws[dayCol+str(currRow+2)]
+                    curr_cell.value="="+dayCol+str(currRow+1)+"-"+dayCol+str(currRow)
+                    curr_cell.border=thin_border
+                    curr_cell.font=tableFont
+                    curr_cell.alignment=alignCenter
+                else:
+                    row=currRow-1
+                    dayCol=get_column_letter(col) 
+                    t=ws[dayCol+str(row)]
+                    t.value=resValuesH.get(col)
+                    t.font=headFont
+                    t.alignment=alignCenter
+                    t.border=thin_border
+                    t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
+                    meta_cell=org_row+6
+                    for i in range(0,4):
+                        t=ws[dayCol+str(currRow+i)]
+                        if(i==0):
+                            t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell)
+                        elif(i==2):
+                           t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell+1)
+                        elif(i==3):
+                            t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
+                        t.font=tableFont
+                        t.alignment=alignCenter
+                        t.border=thin_border
+                    #TODO Change cells to have formulas from Cost Table
+            #Works with the Weekly Eff. Column. This time working as a column to display cummulative work, eff, cost
+            elif(col==10):
+                if(table!=2):
+                    row=currRow-1
+                    dayCol=get_column_letter(col) 
+                    t=ws[dayCol+str(row)]
+                    t.value=resValues.get(len(resValues))
+                    t.font=headFont
+                    t.alignment=alignCenter
+                    t.border=thin_border
+                    t.fill=PatternFill(start_color='F8B484', end_color='F8B484', fill_type="solid")
+                    for i in range(1,4):
+                        if(i!=3):
+                            t=ws[dayCol+str(currRow)]
+                            t.value="=SUM("+"D"+str(currRow)+":"+"H"+str(currRow)+")"
+                            currRow+=1
+                            t.font=headFont
+                            t.alignment=alignCenter
+                            t.border= thin_border
+                        else:
+                            t=ws[dayCol+str(currRow)]
+                            t.value="=$"+dayCol+"$"+str(currRow-1)+"-$"+dayCol+"$"+str(currRow-2)
+                            t.font=headFont
+                            t.alignment=alignCenter
+                            t.border= thin_border
+                else:
+                    row=currRow-1
+                    dayCol=get_column_letter(col) 
+                    t=ws[dayCol+str(row)]
+                    t.value=resValues.get(len(resValues))
+                    t.font=headFont
+                    t.alignment=alignCenter
+                    t.border=thin_border
+                    t.fill=PatternFill(start_color='F8B484', end_color='F8B484', fill_type="solid")
+                    meta_cell=org_row+6
+                    for i in range(0,4):
+                        t=ws[dayCol+str(currRow+i)]
+                        if(i==0):
+                            t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell)
+                        elif(i==2):
+                           t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell+1)
+                        elif(i==3):
+                            t.value="=$"+dayCol+"$"+str(currRow)+"-$"+dayCol+"$"+str(currRow+2)
+                        t.font=tableFont
+                        t.alignment=alignCenter
+                        t.border=thin_border
+        currRow+=24
+                
 def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
     if(firstEntry<2):
         for col in range(1,5):
@@ -452,14 +617,14 @@ def fitTotext(firstEntry,ws,size):
         greatestWidth=21.5
         ws.column_dimensions[get_column_letter(firstEntry+3)].width=greatestWidth
 
-def main():
-    startUp()
+def main(orgReport, resReport, Day):
+    #startUp()
     #---------------Intial input of the two workbooks to work with-----------------#
 
     #orgReport=input('\nFile Name of the original report: ')
-    orgWB="original/OPR IWOL COM MAR 24.xlsx"
+    orgWB=orgReport
     #resReport=input('\nFile Name of Report to Create/Edit on: ')
-    resWB="results/Daily Eff. Report AGSUBC(T).xlsx"
+    resWB=resReport
 
     #---------------Initializing Global Variables---------------------------#
     p1=autoxl()
@@ -472,9 +637,10 @@ def main():
 
     #-------------------------Mode Select---------------------------------#
     print("\n\nPROGRAM START...\n\n")
-    Modeselect='n'#input('\First entry of the week? Answer: y or n')
+    weekDay= Day #input("What day of the week is it? Please input day as: M=Martes, W==Miercoles, J=Jueves or V=Viernes: ")
+    #Modeselect='n'#input('\First entry of the week? Answer: y or n')
 
-    if(Modeselect=='y'):
+    if(weekDay=="L"):
         firstEntry=1
         date=p1.getDay()
         date=date.split("/")
@@ -514,12 +680,21 @@ def main():
             #---------------------------------------------------------------# 
             #-------------------AutoFit Columns-----------------------------#
             fitTotext(firstEntry,ws,len(effList))  
-        #-----end for-------------------------------------------------------#             
+
+            #Create Production, Overall Efficiency and Work Line Cost Table Reports
+            #currRow=len(effList)
+            #create_prod_rep(ws, currRow)
+
+
+        #-----end for-------------------------------------------------------#  
+        
+
+
+
         p1.result.save(resWB)
         print("\n\nPROGRAM END...")
     else:
-        #Ask what day of the week is L=Lunes, M=Martes, W==Miercoles, J=Jueves, V=Viernes
-        weekDay= "J" #input("What day of the week is it? Please input day as: M=Martes, W==Miercoles, J=Jueves or V=Viernes: ")
+        #Ask what day of the week is L=Lunes, M=Martes, W=Miercoles, J=Jueves, V=Viernes
         date=p1.getDay()
         date=date.split("/")
         weekDate=Date(int(date[1]),int(date[0]),2000+int(date[2]))
@@ -538,55 +713,67 @@ def main():
             riDs=p1.getchildId(ws)
             employeeNames=p1.getNames(Divisionrows[i])
             effList=p1.getEff(Divisionrows[i]+1)
+            DEBUG=0
             #----------ID comparison to see if new entries were made----------#
             iCount=0
             if(len(iDs)*2<len(riDs)):
+                #---------Implementation of Dead Day, in case of very few employee Antendance--------------#
                 p1.input_dead_day(ws,iDs,riDs,effList,dayNum)
             else:
                 for (newElement,oldElement) in zip(iDs,riDs):
                     if(two_diff):
                         two_diff=False
                         continue
-                    #Check if there are still new entries at the end of the new Report
-                    if(iCount==len(riDs)-1 and len(iDs)>len(riDs)):
-                        diff=len(iDs)-len(riDs)
-                        for i in range(0,diff):
-                            iCount+=1
-                            p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                        
                     #Check if a new entry has to be added by comparing the positions of the current 
                     # elements of each list
                     if(oldElement>newElement):
                         p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                        DEBUG+=1
                         riDs.insert(iCount,newElement)
                         iCount+=1
                     #Checks if a new entry is already in the Eff. Report, If so then this new entry 
                     # is added to the result Report
-                    elif(riDs.index(newElement)==ValueError):
-                        p1.setNewEntries(ws,employeeNames,iCount,iDs)
-                        riDs.insert(iCount,newElement)
-                        iCount+=1
-                    #Checks the difference in position of a new entry that is already in the resulr 
-                    # report to correct the position of the efficiency to input
-                    else:
-                        diff=abs(riDs.index(newElement)-iDs.index(newElement))
-                        if(diff!=0):
-                            for i in range(0,diff):
-                                        effList.insert(iCount,0)
-                                        iDs.insert(iCount,0)
-                                        employeeNames.insert(iCount," ")
-                            if(diff>1):
-                                two_diff=True
-                            iCount+=diff
-                        else:
+                    elif(oldElement<newElement):
+                        try:
+                            iDs.index(oldElement)
+                        except:
+                            effList.insert(iCount,0)
+                            iDs.insert(iCount,oldElement)
+                            employeeNames.insert(iCount," ")
+                        try:
+                            riDs.index(newElement)
+                        except:
                             iCount+=1
-                #---------------Input new day entries---------------------------#
+                            p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                            DEBUG+=1
+                            riDs.insert(iCount,newElement)
+                            continue
+                        #diff=abs(riDs.index(newElement)-iDs.index(newElement))
+                        iCount+=1
+                    else:
+                        iCount+=1
+                #---------------Check for Data Inconsistencies---------------------------#
+                if(len(iDs)>len(riDs)):
+                    diff=len(iDs)-len(riDs)
+                    for i in range(0,diff):
+                        p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                        DEBUG+=1
+                        riDs.insert(iCount,iDs[iCount])
+                        iCount+=1
+                if(len(iDs)!=len(riDs)):
+                    #Raise ValueError so that the workbook isn't saved with corrupted data
+                    #raise ValueError('There were inconsistencies in the data to input with the data already in file')
+                    print
+                #---------------Input new day entries---------------------------#    
                 inputIDname(ws,iDs,employeeNames,effList,Departments,i,dayNum)
                 #---------------------------------------------------------------#
             #-------------------AutoFit Columns-----------------------------#
             fitTotext(dayNum, ws,len(effList))
         #-----end for-------------------------------------------------------#
         p1.result.save(resWB)
-        print("\n\nPROGRAM END...")
+        print("\n\nPROGRAM END...")    
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+    #main()
+
