@@ -72,7 +72,7 @@ headFont= Font(name="Verdana",sz= 24, bold=True)
 alignCenter= Alignment(horizontal="center")
 tableFont= Font(name="Verdana",sz=24) 
 thin_border= Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-TabColor=4
+TabColor=2
 
 class autoxl():
     def _init_(this,original,result):
@@ -617,27 +617,21 @@ def fitTotext(firstEntry,ws,size):
         greatestWidth=21.5
         ws.column_dimensions[get_column_letter(firstEntry+3)].width=greatestWidth
 
-def main(orgReport, resReport, Day):
+def main(orgReport, resReport, Day): #orgReport, resReport, Day
     #startUp()
     #---------------Intial input of the two workbooks to work with-----------------#
-
-    #orgReport=input('\nFile Name of the original report: ')
-    orgWB=orgReport
-    #resReport=input('\nFile Name of Report to Create/Edit on: ')
-    resWB=resReport
-
+    orgWB= orgReport #"original/OPR MCTR APR 11.xlsx"
+    resWB= resReport#"results/Daily Eff. Report AutoTest.xlsx" #resReport
     #---------------Initializing Global Variables---------------------------#
     p1=autoxl()
-
     p1.original=load_workbook(orgWB)
     p1.result=load_workbook(resWB)
     Departments=p1.getDepart()
     Supervisors=p1.getSupers(len(Departments))
     Divisionrows=p1.getdeptDiv(len(Departments))
-
     #-------------------------Mode Select---------------------------------#
     print("\n\nPROGRAM START...\n\n")
-    weekDay= Day #input("What day of the week is it? Please input day as: M=Martes, W==Miercoles, J=Jueves or V=Viernes: ")
+    weekDay=Day #"L" #Day #input("What day of the week is it? Please input day as: M=Martes, W==Miercoles, J=Jueves or V=Viernes: ")
     #Modeselect='n'#input('\First entry of the week? Answer: y or n')
 
     if(weekDay=="L"):
@@ -772,8 +766,11 @@ def main(orgReport, resReport, Day):
             fitTotext(dayNum, ws,len(effList))
         #-----end for-------------------------------------------------------#
         p1.result.save(resWB)
+        if(weekDay=='V'):
+           currRow=len(riDs)
+           create_prod_rep(ws, currRow) 
         print("\n\nPROGRAM END...")    
 
-#if __name__ == "__main__":
-    #main()
+if __name__ == "__main__":
+    main()
 
