@@ -31,7 +31,6 @@ fieldLabel= Label(root)
 orgLabel= Label(root)
 resLabel=Label(root)
 dayLabel= Label(root)
-Test= Label(root)
 class App(tk.Tk):
 
     def __init__(self):
@@ -50,16 +49,14 @@ def get_original_report():
         file_name=orgReport.split("/")
         Org_Label=tk.Label(root,text=file_name[len(file_name)-1],font=("Verdana",14),bg="white",fg="black")
         Org_Label.place(x=5, y=215)
-        
-        
-        
+              
 def get_Efficiency_report():
     global Res_Label
     resReport=filedialog.askopenfilename(initialdir="/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports", title="Select EFFICIENCY Report File", 
                                         filetypes=(("excel", ".xlsx"), ("all files", ".*")))
     reportPath.set(resReport)
     if(reportPath!=""):
-
+        Res_Label.destroy()
         reportpathSelected.set(True)
         file_name=resReport.split("/")
         Res_Label=tk.Label(root,text=file_name[len(file_name)-1],font=("Verdana",14),bg="white",fg="black")
@@ -78,14 +75,6 @@ def get_day_of_Report():
     else:
         dayPath.set("V")
     daySelected.set(True)
-
-def lock_Report():
-    global Test
-    if(Checkbutton1.get==0):
-        Test.destroy()
-        Test=tk.Label(root,text="Successfully Changed",font=("Verdana",14),bg="white",fg="black")
-        Test.place(x=20,y=375)
-
 
 def start():
     global fieldLabel, orgLabel, resLabel, dayLabel, orgpathSelected, Res_Label
@@ -111,8 +100,8 @@ def start():
     else:
         autoxl.main(originalPath.get(),reportPath.get(),dayPath.get())
         orgpathSelected.set(False)
-        reportpathSelected.set(False)
-        Res_Label.destroy()
+        if(Checkbutton1.get()==0):
+            reportpathSelected.set(False)
         daySelected.set(False)
         label=tk.Label(root,text="Effiency Report succesfully made!",font=("Verdana",18),bg="white",fg="black")
         label.pack()
@@ -143,7 +132,7 @@ Radiobutton(root, text='Miercoles', variable=var1,bg="#F88486",value=3,command=g
 Radiobutton(root, text='Jueves', variable=var1,bg="#F88486",value=4,command=get_day_of_Report).place(x=245,y=345)
 Radiobutton(root, text='Viernes', variable=var1,bg="#F88486",value=5,command=get_day_of_Report).place(x=320,y=345)
 #Radiobutton(root, text='Lock Eff. Report', variable=var2,bg="#84C8F8",value=1,command=lock_Report()).place(x=240,y=315)
-Checkbutton(root, text='Lock Eff. Report',bg="#84C8F8", onvalue = 1, offvalue = 0,variable=Checkbutton1, command=lock_Report()).place(x=240,y=315)
+lockReport=Checkbutton(root, text='Lock Eff. Report',bg="#84C8F8", onvalue = 1, offvalue = 0,variable=Checkbutton1).place(x=230,y=245)
 CreateFile = tk.Button(root, text="Make Report", padx=10, pady=5, fg="black", bg="#FFDF13", command=start).place(x=5,y=375)
 
 
