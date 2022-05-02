@@ -1,0 +1,40 @@
+
+for newElement  in iDs:
+
+                if(len(riDs)-1==oldCount):
+                    if(newElement<riDs[oldCount]):
+                        p1.setNewEntries(ws,employeeNames,oldCount,iDs)
+                        oldCount-=1
+                    break
+                try:
+                    if(riDs.index(newElement)!=ValueError):
+                        if(riDs.index(newElement)!=iDs.index(newElement)):
+                            diff=riDs.index(newElement)-iDs.index(newElement)
+                            for i in range(0,diff):
+                                effList.insert(oldCount,0)
+                                iDs.insert(oldCount,0)
+                                employeeNames.insert(oldCount," ")
+                except:
+                    print("Caught exepction")
+                #if(riDs[oldCount+1]==iDs[oldCount]):
+                   # effList.insert(oldCount,0)
+                    #iDs.insert(oldCount,0)
+                    #employeeNames.insert(oldCount," ")
+                if(newElement<riDs[oldCount]):
+                    p1.setNewEntries(ws,employeeNames,oldCount,iDs)
+                    riDs.insert(oldCount,newElement)
+                    oldCount-=1
+                print(newElement,riDs[oldCount])
+                oldCount+=1
+
+#/********************************************************************\
+    #Check if there are still new entries at the end of the new Report
+                    #if(iCount==len(riDs)-1 and len(iDs)>len(riDs)):
+                        #diff=len(iDs)-len(riDs)
+                        #for i in range(0,diff):
+                           # iCount+=1
+                            #p1.setNewEntries(ws,employeeNames,iCount,iDs)
+                            #riDs.insert(iCount,newElement)
+                        
+
+#*************************Piece of code in newEntry Algorithm*************************#
