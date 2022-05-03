@@ -5,8 +5,7 @@ from tkinter import filedialog, Text
 from turtle import width
 from tkinter import *
 from PIL import Image, ImageTk
-import os
-import autoxl
+import Autoxl, Main
 
 root = tk.Tk()
 root.title('Efficiency Report Maker')
@@ -98,7 +97,8 @@ def start():
         else:
             dayLabel.destroy()
     else:
-        autoxl.main(originalPath.get(),reportPath.get(),dayPath.get())
+        Main.main(originalPath.get(),reportPath.get(),dayPath.get())
+        #autoxl.main(originalPath.get(),reportPath.get(),dayPath.get())
         orgpathSelected.set(False)
         if(Checkbutton1.get()==0):
             reportpathSelected.set(False)
