@@ -1,4 +1,5 @@
 from calendar import month
+from curses import meta
 from gc import collect
 from pickle import FALSE, NONE
 from openpyxl import Workbook, workbook, load_workbook
@@ -10,11 +11,13 @@ from openpyxl.utils import get_column_letter
 from  collections import defaultdict
 import Date, Autoxl
 from Autoxl import res,headFont,TabColor,thin_border,alignCenter,tableFont
+prod_ref_cells=[]
+cost_ref_cells=[]
+
 
 
 
 def main(orgReport, resReport, Day): #orgReport, resReport, Day
-    #startUp()
     #---------------Intial input of the two workbooks to work with-----------------#
     orgWB= orgReport #"original/OPR MCTR APR 11.xlsx"
     resWB= resReport#"results/Daily Eff. Report AutoTest.xlsx" #resReport
@@ -163,15 +166,11 @@ def main(orgReport, resReport, Day): #orgReport, resReport, Day
 
             #--------------------Production, Overall Efficiency and Work Line Cost Table Reports----------------#
             if(weekDay=="V"):
-                currRow=len(effList)
-                create_prod_rep(ws, currRow)
+                currRow=len(riDs)
+                create_prod_rep(ws, currRow, i,sheetNames)
         #-----end for-------------------------------------------------------#
         p1.result.save(resWB)
         print("\n\nPROGRAM END...")    
-
-def startUp():
-    print('\n\n********This program is to simplify the Employee Reports of PRIFB & HARDWICK and automatically make an Efficiency Report********\n')
-    print('First please input the file names to work with.\n')  
 
 def createTitle(ws,weekDate,endweekDate,Departments,supName):
     resValues=res["Title"]
@@ -241,7 +240,8 @@ def createHeader(ws,weekDate):
     print("Completed Heading Creation...")  
 #Creates the following 3 tables that display Production, Line Efficiency and Cost per Unit
 
-def create_prod_rep(ws, currRow):
+def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
+    global prod_ref_cells, cost_ref_cells
     print("\nStarting Production Section Creation...")
     resValues=res["Prod_Eff"]
     resValuesH=res["Heading"]
@@ -250,6 +250,7 @@ def create_prod_rep(ws, currRow):
     org_row=currRow+7
     currRow+=10
     meta_cell=" "
+    csr_Count=0
 
     for table in range(0,3):
         for col in range(1,11):
@@ -290,45 +291,84 @@ def create_prod_rep(ws, currRow):
                     dayCol=get_column_letter(col) 
                     t=ws[dayCol+str(row)]
                     t.value=resValuesH.get(col)
-                    t.font=headFont
-                    t.alignment=alignCenter
-                    t.border=thin_border
+                    cell_styling(t,"H")
                     t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
                     meta_cell=dayCol+str(currRow)
                     res_cell=dayCol+str(currRow+1)
-                    if(table==1):
-                        r_cell=ws[res_cell]
-                        r_cell.value="=AVERAGE("+dayCol+str(8)+":"+dayCol+str(org_row)+")"
-                        r_cell.border=thin_border
-                        r_cell.font=tableFont
-                        r_cell.alignment=alignCenter
-                    curr_cell=ws[dayCol+str(currRow+2)]
-                    curr_cell.value="="+dayCol+str(currRow+1)+"-"+dayCol+str(currRow)
-                    curr_cell.border=thin_border
-                    curr_cell.font=tableFont
-                    curr_cell.alignment=alignCenter
+                    if(current_Supervisor!=0):
+                        t=ws[meta_cell]
+                        t.value="='"+sheetNames[0]+"'!"+prod_ref_cells[csr_Count]
+                        cell_styling(t,"T")
+                        csr_Count+=1
+                        if(table==1):
+                            difference_cell=ws[res_cell]
+                            difference_cell.value="=AVERAGE("+dayCol+str(8)+":"+dayCol+str(org_row)+")"
+                            cell_styling(difference_cell,"T")
+                        difference_cell=ws[dayCol+str(currRow+2)] 
+                        #------Value of cells equal the value of the first Supervisor, as the CSR is Department Wise------#
+                        difference_cell.value="="+dayCol+str(currRow+1)+"-"+dayCol+str(currRow)
+                        cell_styling(difference_cell,"T")
+                    else:
+                        if(table==1):
+                            difference_cell=ws[res_cell]
+                            difference_cell.value="=AVERAGE("+dayCol+str(8)+":"+dayCol+str(org_row)+")"
+                            cell_styling(difference_cell,"T")
+                        difference_cell=ws[dayCol+str(currRow+2)]
+                        prod_ref_cells+=[meta_cell]
+                        difference_cell.value="="+dayCol+str(currRow+1)+"-"+dayCol+str(currRow)
+                        cell_styling(difference_cell,"T")
                 else:
-                    row=currRow-1
-                    dayCol=get_column_letter(col) 
-                    t=ws[dayCol+str(row)]
-                    t.value=resValuesH.get(col)
-                    t.font=headFont
-                    t.alignment=alignCenter
-                    t.border=thin_border
-                    t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
-                    meta_cell=org_row+6
-                    for i in range(0,4):
-                        t=ws[dayCol+str(currRow+i)]
-                        if(i==0):
-                            t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell)
-                        elif(i==2):
-                           t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell+1)
-                        elif(i==3):
-                            t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
-                        t.font=tableFont
+                    #Change cells to have formulas from Cost Table
+                    # TODO LEFT AT CHOOSING WHAT TO DO DEPENDING ON ORDER OF SUPERVISOR
+                    if(current_Supervisor!=0):
+                        row=currRow-1
+                        dayCol=get_column_letter(col) 
+                        t=ws[dayCol+str(row)]
+                        t.value=resValuesH.get(col)
+                        t.font=headFont
                         t.alignment=alignCenter
                         t.border=thin_border
-                    #TODO Change cells to have formulas from Cost Table
+                        t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
+                        meta_cell=org_row+3
+                        r_cell=meta_cell+1
+                        for i in range(0,4):
+                            t=ws[dayCol+str(currRow+i)]
+                            #----------------This is where the Nomina Cells are located-------#
+                            if(i==0):
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell)
+                            elif(i==2):
+                                cost_ref_cells+=[dayCol+str(currRow+1)]
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_cell)
+                            elif(i==3):
+                                t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
+                            t.font=tableFont
+                            t.alignment=alignCenter
+                            t.border=thin_border
+                    else:
+                        row=currRow-1
+                        dayCol=get_column_letter(col) 
+                        t=ws[dayCol+str(row)]
+                        t.value=resValuesH.get(col)
+                        t.font=headFont
+                        t.alignment=alignCenter
+                        t.border=thin_border
+                        t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
+                        meta_cell=org_row+3
+                        r_cell=meta_cell+1
+                        for i in range(0,4):
+                            t=ws[dayCol+str(currRow+i)]
+                            #----------------This is where the Nomina Cells are located-------#
+                            if(i==0):
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell)
+                            elif(i==2):
+                                cost_ref_cells+=[dayCol+str(currRow+1)]
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_cell)
+                            elif(i==3):
+                                t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
+                            t.font=tableFont
+                            t.alignment=alignCenter
+                            t.border=thin_border
+                    
             #Works with the Weekly Eff. Column. This time working as a column to display cummulative work, eff, cost
             elif(col==10):
                 if(table!=2):
@@ -369,7 +409,7 @@ def create_prod_rep(ws, currRow):
                         if(i==0):
                             t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell)
                         elif(i==2):
-                           t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell+1)
+                            t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell+1)
                         elif(i==3):
                             t.value="=$"+dayCol+"$"+str(currRow)+"-$"+dayCol+"$"+str(currRow+2)
                         t.font=tableFont
@@ -377,6 +417,8 @@ def create_prod_rep(ws, currRow):
                         t.border=thin_border
         currRow+=24
     print("\nCompleted Production Section Creation...")
+
+
                 
 def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
     if(firstEntry<2):
@@ -453,6 +495,16 @@ def fitTotext(firstEntry,ws,size):
     else:
         greatestWidth=21.5
         ws.column_dimensions[get_column_letter(firstEntry+3)].width=greatestWidth
+
+def cell_styling(cell, style):
+        if(style=="H"):
+            cell.border=thin_border
+            cell.font=headFont
+            cell.alignment=alignCenter
+        elif(style=="T"):
+            cell.border=thin_border
+            cell.font=tableFont
+            cell.alignment=alignCenter
 
 if __name__ == "__main__":
     main()

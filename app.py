@@ -5,7 +5,7 @@ from tkinter import filedialog, Text
 from turtle import width
 from tkinter import *
 from PIL import Image, ImageTk
-import Autoxl, Main
+import Main
 
 root = tk.Tk()
 root.title('Efficiency Report Maker')
@@ -39,7 +39,7 @@ class App(tk.Tk):
 
 def get_original_report():
     global Org_Label, orgpathSelected
-    orgReport=filedialog.askopenfilename(initialdir="/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports", title="Select ORIGINAL Report File", 
+    orgReport= filedialog.askopenfilename(initialdir="/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports", title="Select ORIGINAL Report File", #"/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports/GREEN DAILY REPORTS/(17) WEEK 25 APR - 1 MAY/OPR AGSU APR 29.xlsx"
                                         filetypes=(("excel", ".xlsx"), ("all files", ".*")))
     originalPath.set(orgReport)
     if(originalPath.get()!=""):
@@ -51,7 +51,7 @@ def get_original_report():
               
 def get_Efficiency_report():
     global Res_Label
-    resReport=filedialog.askopenfilename(initialdir="/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports", title="Select EFFICIENCY Report File", 
+    resReport= filedialog.askopenfilename(initialdir="/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports", title="Select EFFICIENCY Report File", #"/Users/fabian/Desktop/PythonProject/results/Daily Eff. Report AutoTest copy.xlsx"filedialog.askopenfilename(initialdir="/Users/fabian/Desktop/PRIFB/EFFIENCY REPORTS/Daily Reports", title="Select EFFICIENCY Report File", 
                                         filetypes=(("excel", ".xlsx"), ("all files", ".*")))
     reportPath.set(resReport)
     if(reportPath!=""):
@@ -99,12 +99,13 @@ def start():
     else:
         Main.main(originalPath.get(),reportPath.get(),dayPath.get())
         #autoxl.main(originalPath.get(),reportPath.get(),dayPath.get())
+        #file_name=originalPath.split("/")
+        label=tk.Label(root,text=originalPath.get().split("/")[len(file_name)-1] + " Effiency Report succesfully made!",font=("Verdana",18),bg="white",fg="black")
+        label.pack()
         orgpathSelected.set(False)
         if(Checkbutton1.get()==0):
             reportpathSelected.set(False)
         daySelected.set(False)
-        label=tk.Label(root,text="Effiency Report succesfully made!",font=("Verdana",18),bg="white",fg="black")
-        label.pack()
         fieldLabel.destroy()
 # Create a photoimage object of the image in the path
 

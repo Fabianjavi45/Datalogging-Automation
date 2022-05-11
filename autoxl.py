@@ -9,7 +9,7 @@ from openpyxl.styles.colors import Color
 from openpyxl.worksheet.properties import WorksheetProperties, PageSetupProperties
 from openpyxl.utils import get_column_letter
 from  collections import defaultdict
-import Date
+import Main
 
 #Global Variables and Resources
 res={
@@ -111,6 +111,7 @@ class autoxl():
         ws.insert_rows(rowtoInsert)
         t=ws["A"+str(rowtoInsert)]
         t.value=int(iDs[oldCount])
+        #Main.cell_styling(t,"H")
         t.font=tableFont
         t.alignment=alignCenter
         t.border= thin_border
@@ -237,6 +238,8 @@ class autoxl():
             t.font=tableFont
             t.alignment=alignCenter
             t.border= thin_border   
+    
+
 
 
 
