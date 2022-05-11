@@ -231,10 +231,8 @@ def createHeader(ws,weekDate):
                 else:
                     t=ws[dayCol+str(row)]
                     t.value="Eff."
-                t.font=headFont
-                t.alignment=alignCenter
+                cell_styling(t,"H")
                 t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
-                t.border= thin_border
         t.font=headFont
         t.alignment=alignCenter
     print("Completed Heading Creation...")  
@@ -260,9 +258,7 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                 ws.merge_cells(col1+str(currRow)+":"+col2+str(currRow+2))
                 t=ws[col1+str(currRow)]
                 t.value=resTable.get(table)
-                t.font=headFont
-                t.alignment=alignCenter
-                t.border= thin_border
+                cell_styling(t,"H")
             elif(col==3):
                 if(table!=2):
                     col1=get_column_letter(col)
@@ -270,20 +266,16 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                     for i in range(1,4):
                         t=ws[col1+str(currRow+count)]
                         t.value=resValues.get(i)
+                        cell_styling(t,"H")
                         count+=1
-                        t.font=headFont
-                        t.alignment=alignCenter
-                        t.border= thin_border
                 else:
                     col1=get_column_letter(col)
                     count=0
                     for i in range(1,5):
                         t=ws[col1+str(currRow+count)]
                         t.value=resCost.get(i)
+                        cell_styling(t,"H")
                         count+=1
-                        t.font=headFont
-                        t.alignment=alignCenter
-                        t.border= thin_border
             #Columns where data in inputed with a formula at the last row to display difference between the data inputed.
             elif(col>=4 and col<9):
                 if(table!=2):
@@ -325,9 +317,7 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                         dayCol=get_column_letter(col) 
                         t=ws[dayCol+str(row)]
                         t.value=resValuesH.get(col)
-                        t.font=headFont
-                        t.alignment=alignCenter
-                        t.border=thin_border
+                        cell_styling(t,"H")
                         t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
                         meta_cell=org_row+3
                         r_cell=meta_cell+1
@@ -341,17 +331,13 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                                 t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_cell)
                             elif(i==3):
                                 t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
-                            t.font=tableFont
-                            t.alignment=alignCenter
-                            t.border=thin_border
+                            cell_styling(t,"T")
                     else:
                         row=currRow-1
                         dayCol=get_column_letter(col) 
                         t=ws[dayCol+str(row)]
                         t.value=resValuesH.get(col)
-                        t.font=headFont
-                        t.alignment=alignCenter
-                        t.border=thin_border
+                        cell_styling(t,"H")
                         t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
                         meta_cell=org_row+3
                         r_cell=meta_cell+1
@@ -365,9 +351,7 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                                 t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_cell)
                             elif(i==3):
                                 t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
-                            t.font=tableFont
-                            t.alignment=alignCenter
-                            t.border=thin_border
+                            cell_styling(t,"T")
                     
             #Works with the Weekly Eff. Column. This time working as a column to display cummulative work, eff, cost
             elif(col==10):
@@ -376,32 +360,24 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                     dayCol=get_column_letter(col) 
                     t=ws[dayCol+str(row)]
                     t.value=resValues.get(len(resValues))
-                    t.font=headFont
-                    t.alignment=alignCenter
-                    t.border=thin_border
+                    cell_styling(t,"H")
                     t.fill=PatternFill(start_color='F8B484', end_color='F8B484', fill_type="solid")
                     for i in range(1,4):
                         if(i!=3):
                             t=ws[dayCol+str(currRow)]
                             t.value="=SUM("+"D"+str(currRow)+":"+"H"+str(currRow)+")"
+                            cell_styling(t,"H")
                             currRow+=1
-                            t.font=headFont
-                            t.alignment=alignCenter
-                            t.border= thin_border
                         else:
                             t=ws[dayCol+str(currRow)]
                             t.value="=$"+dayCol+"$"+str(currRow-1)+"-$"+dayCol+"$"+str(currRow-2)
-                            t.font=headFont
-                            t.alignment=alignCenter
-                            t.border= thin_border
+                            cell_styling(t,"H")
                 else:
                     row=currRow-1
                     dayCol=get_column_letter(col) 
                     t=ws[dayCol+str(row)]
                     t.value=resValues.get(len(resValues))
-                    t.font=headFont
-                    t.alignment=alignCenter
-                    t.border=thin_border
+                    cell_styling(t,"H")
                     t.fill=PatternFill(start_color='F8B484', end_color='F8B484', fill_type="solid")
                     meta_cell=org_row+6
                     for i in range(0,4):
@@ -435,26 +411,18 @@ def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
                 wt.border= thin_border
                 if(col==1):
                     t.value=int(iDs[count])
-                    t.font=tableFont
-                    t.alignment=alignCenter
-                    t.border= thin_border
+                    cell_styling(t,"T")
                     count+=1
                 elif(col==2):
                     t.value=Departments[depCount]
-                    t.font=tableFont
-                    t.alignment=alignCenter
-                    t.border= thin_border
+                    cell_styling(t,"T")
                 elif(col==3):
                     t.value=employeeNames[count]
-                    t.font=headFont
-                    t.alignment=alignCenter
-                    t.border= thin_border
+                    cell_styling(t,"T")
                     count+=1
                 else:
                     t.value=float(effList[count])
-                    t.font=tableFont
-                    t.alignment=alignCenter
-                    t.border= thin_border
+                    cell_styling(t,"T")
                     count+=1
 
     else:
@@ -464,14 +432,10 @@ def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
         for row in range(8,8+len(iDs)):
             wt=ws[weeklyCol+str(row)]
             wt.value= '=AVERAGE(D'+str(row)+':H'+str(row)+')'
-            wt.font=tableFont
-            wt.alignment=alignCenter
-            wt.border= thin_border
+            cell_styling(wt,"T")
             t=ws[col+str(row)]
             t.value=float(effList[count])
-            t.font=tableFont
-            t.alignment=alignCenter
-            t.border= thin_border
+            cell_styling(t,"T")
             count+=1
     print("\nCompleting Employee Logging...")   
 
@@ -497,11 +461,11 @@ def fitTotext(firstEntry,ws,size):
         ws.column_dimensions[get_column_letter(firstEntry+3)].width=greatestWidth
 
 def cell_styling(cell, style):
-        if(style=="H"):
+        if(style=="H"): #Header Font
             cell.border=thin_border
             cell.font=headFont
             cell.alignment=alignCenter
-        elif(style=="T"):
+        elif(style=="T"): #Table Font
             cell.border=thin_border
             cell.font=tableFont
             cell.alignment=alignCenter
