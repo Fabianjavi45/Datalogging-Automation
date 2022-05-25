@@ -122,7 +122,7 @@ label.pack()
 #-----------Original Report Search Button-----------#
 tk.Button(root, text="Original Report",font=("Verdana",18), fg="black", bg="#F88486", command=get_original_report).place(x=5, y=180)
 #-----------Efficiency Report Search Button-----------#
-tk.Button(root, text="Efficiency Report", font=("Verdana",18), fg="black", bg="#FFDF13", command=get_Efficiency_report).place(x=5, y=240)
+tk.Button(root, text="Efficiency Report", font=("Verdana",18), fg="black", bg="#FFDF13", command=get_Efficiency_report).pack(padx=10, )
 #-----------Day submitting Button-----------#
 tk.Button(root, text="Select Day of Report", font=("Verdana",18), fg="black", bg="#FFDF13").place(x=5, y=310)
 #Buttons-----------------------------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ Radiobutton(root, text='Jueves', variable=var1,bg="#F88486",value=4,command=get_
 Radiobutton(root, text='Viernes', variable=var1,bg="#F88486",value=5,command=get_day_of_Report).place(x=320,y=345)
 #Radiobutton(root, text='Lock Eff. Report', variable=var2,bg="#84C8F8",value=1,command=lock_Report()).place(x=240,y=315)
 lockReport=Checkbutton(root, text='Lock Eff. Report',bg="#84C8F8", onvalue = 1, offvalue = 0,variable=Checkbutton1).place(x=230,y=245)
-CreateFile = tk.Button(root, text="Make Report", padx=10, pady=5, fg="black", bg="#FFDF13", command=start).place(x=5,y=375)
+CreateFile = tk.Button(root, text="Make Report", padx=10, pady=5, fg="black", bg="#FFDF13", command=Main.main(originalPath,reportPath,dayPath)).place(x=5,y=375)
 
 
 root.mainloop()

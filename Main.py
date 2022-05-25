@@ -20,8 +20,18 @@ cost_ref_cells=[]
 def main(orgReport, resReport, Day): #orgReport, resReport, Day
     #---------------Intial input of the two workbooks to work with-----------------#
     orgWB= orgReport #"original/OPR MCTR APR 11.xlsx"
-    resWB= resReport#"results/Daily Eff. Report AutoTest.xlsx" #resReport
+    resWB= resReport#"results/Daily Eff. Report AutoTest copy.xlsx" #resReport
     #---------------Initializing Global Variables---------------------------#
+
+    #-----------------------CSR TEST----------------------------------------#
+    Report=load_workbook("results/Daily Eff. Report AutoTest copy.xlsx")
+    ws=Report["NAHILA 22-MAY"]
+    wss=Report["LAURA 22-MAY"]
+    Original=load_workbook("results/OPR AGSU MAY 20.xlsx")
+    create_prod_rep(ws,23,0,"NAHILA 22-MAY")
+    create_prod_rep(wss,30,1,"LAURA 22-MAY")
+    Report.save("results/Daily Eff. Report AutoTest copy.xlsx")
+    #------------------------------------------------------------------------#
     p1=Autoxl.autoxl()
     p1.original=load_workbook(orgWB)
     p1.result=load_workbook(resWB)
@@ -48,7 +58,7 @@ def main(orgReport, resReport, Day): #orgReport, resReport, Day
         #Create Sheet and specifications
         sheetDate=" "+str(endweekDate.day)+"-"+res["Months"].get(endweekDate.month)
         sheetNames=[]
-        #TODO Input the correct emplyees on the correct worksheets
+        
 
         for i in range(0,len(Supervisors)):
             firstName=Supervisors[i].upper()
@@ -139,7 +149,6 @@ def main(orgReport, resReport, Day): #orgReport, resReport, Day
                         except:
                             iCount+=1
                             p1.setNewEntries(ws,employeeNames,iCount,iDs)
-                            DEBUG+=1
                             riDs.insert(iCount,newElement)
                             continue
                         #diff=abs(riDs.index(newElement)-iDs.index(newElement))
@@ -167,7 +176,7 @@ def main(orgReport, resReport, Day): #orgReport, resReport, Day
             #--------------------Production, Overall Efficiency and Work Line Cost Table Reports----------------#
             if(weekDay=="V"):
                 currRow=len(riDs)
-                create_prod_rep(ws, currRow, i,sheetNames)
+                create_prod_rep(ws, currRow, i,sheetNames[0])
         #-----end for-------------------------------------------------------#
         p1.result.save(resWB)
         print("\n\nPROGRAM END...")    
@@ -238,7 +247,7 @@ def createHeader(ws,weekDate):
     print("Completed Heading Creation...")  
 #Creates the following 3 tables that display Production, Line Efficiency and Cost per Unit
 
-def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
+def create_prod_rep(ws, currRow, current_Supervisor,firstSheet):
     global prod_ref_cells, cost_ref_cells
     print("\nStarting Production Section Creation...")
     resValues=res["Prod_Eff"]
@@ -246,8 +255,9 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
     resTable=res["Prod_Cost_Title"]
     resCost=res["Cost"]
     org_row=currRow+7
-    currRow+=10
+    currRow=currRow+10
     meta_cell=" "
+    prod_Count=0
     csr_Count=0
 
     for table in range(0,3):
@@ -287,11 +297,13 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                     t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
                     meta_cell=dayCol+str(currRow)
                     res_cell=dayCol+str(currRow+1)
-                    if(current_Supervisor!=0):
+                    if(current_Supervisor!=0): #-----------Check for linked sheet cells----------#
                         t=ws[meta_cell]
-                        t.value="='"+sheetNames[0]+"'!"+prod_ref_cells[csr_Count]
+                        #t.value="='"+firstSheet[0]+"'!"+prod_ref_cells[prod_Count] #Where linked sheets occur
+                        t.value="='"+"NAHILA 22-MAY"+"'!"+prod_ref_cells[prod_Count] #Where linked sheets occur
                         cell_styling(t,"T")
-                        csr_Count+=1
+                        #TODO CHANGE FIRST SUP CELLS TO JUST NUMBERS SO THAT THE PROGRAM CAN CHANGE CELLS EASILY IF NEEDED
+                        prod_Count+=1
                         if(table==1):
                             difference_cell=ws[res_cell]
                             difference_cell.value="=AVERAGE("+dayCol+str(8)+":"+dayCol+str(org_row)+")"
@@ -300,7 +312,7 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                         #------Value of cells equal the value of the first Supervisor, as the CSR is Department Wise------#
                         difference_cell.value="="+dayCol+str(currRow+1)+"-"+dayCol+str(currRow)
                         cell_styling(difference_cell,"T")
-                    else:
+                    else: #-----------FIRST SUPERVISOR----------# 
                         if(table==1):
                             difference_cell=ws[res_cell]
                             difference_cell.value="=AVERAGE("+dayCol+str(8)+":"+dayCol+str(org_row)+")"
@@ -311,44 +323,49 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                         cell_styling(difference_cell,"T")
                 else:
                     #Change cells to have formulas from Cost Table
-                    # TODO LEFT AT CHOOSING WHAT TO DO DEPENDING ON ORDER OF SUPERVISOR
-                    if(current_Supervisor!=0):
+                    if(current_Supervisor!=0): #-----------Check for linked sheet cells----------# 
                         row=currRow-1
                         dayCol=get_column_letter(col) 
+                        #---------Input Day Title of Report-------#
                         t=ws[dayCol+str(row)]
                         t.value=resValuesH.get(col)
                         cell_styling(t,"H")
                         t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
-                        meta_cell=org_row+3
-                        r_cell=meta_cell+1
+                        #-----------------------------------------#
+                        meta_row=org_row+3
+                        r_row=meta_row+1
                         for i in range(0,4):
                             t=ws[dayCol+str(currRow+i)]
                             #----------------This is where the Nomina Cells are located-------#
                             if(i==0):
-                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell)
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_row)
+                            elif(i==1):
+                                #t.value="='"+firstSheet+"'!"+cost_ref_cells[csr_Count]
+                                t.value="='"+"NAHILA 22-MAY"+"'!"+cost_ref_cells[csr_Count]
+                                csr_Count+=1
                             elif(i==2):
-                                cost_ref_cells+=[dayCol+str(currRow+1)]
-                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_cell)
+                                #cost_ref_cells+=[dayCol+str(currRow+1)]
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_row)
                             elif(i==3):
                                 t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
                             cell_styling(t,"T")
-                    else:
+                    else: #-----------FIRST SUPERVISOR----------# 
                         row=currRow-1
                         dayCol=get_column_letter(col) 
                         t=ws[dayCol+str(row)]
                         t.value=resValuesH.get(col)
                         cell_styling(t,"H")
                         t.fill=PatternFill(start_color='FFE49C', end_color='FFE49C', fill_type="solid")
-                        meta_cell=org_row+3
-                        r_cell=meta_cell+1
+                        prod_meta_row=org_row+3
+                        r_row=prod_meta_row+1
                         for i in range(0,4):
                             t=ws[dayCol+str(currRow+i)]
                             #----------------This is where the Nomina Cells are located-------#
                             if(i==0):
-                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(meta_cell)
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(prod_meta_row)
                             elif(i==2):
                                 cost_ref_cells+=[dayCol+str(currRow+1)]
-                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_cell)
+                                t.value="="+dayCol+str(currRow+1)+"/"+dayCol+str(r_row)
                             elif(i==3):
                                 t.value="="+dayCol+str(currRow)+"-"+dayCol+str(currRow+2)
                             cell_styling(t,"T")
@@ -362,15 +379,20 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                     t.value=resValues.get(len(resValues))
                     cell_styling(t,"H")
                     t.fill=PatternFill(start_color='F8B484', end_color='F8B484', fill_type="solid")
-                    for i in range(1,4):
-                        if(i!=3):
-                            t=ws[dayCol+str(currRow)]
-                            t.value="=SUM("+"D"+str(currRow)+":"+"H"+str(currRow)+")"
-                            cell_styling(t,"H")
-                            currRow+=1
+
+                    for i in range(0,3):
+                        if(i!=2):
+                            if(table==1):
+                                t=ws[dayCol+str(currRow+i)]
+                                t.value="=AVERAGE("+"D"+str(currRow+i)+":"+"H"+str(currRow+i)+")"
+                                cell_styling(t,"H")
+                            else:
+                                t=ws[dayCol+str(currRow+i)]
+                                t.value="=SUM("+"D"+str(currRow+i)+":"+"H"+str(currRow+i)+")"
+                                cell_styling(t,"H")
                         else:
-                            t=ws[dayCol+str(currRow)]
-                            t.value="=$"+dayCol+"$"+str(currRow-1)+"-$"+dayCol+"$"+str(currRow-2)
+                            t=ws[dayCol+str(currRow+i)]
+                            t.value="=$"+dayCol+"$"+str(currRow+1)+"-$"+dayCol+"$"+str(currRow)
                             cell_styling(t,"H")
                 else:
                     row=currRow-1
@@ -379,19 +401,19 @@ def create_prod_rep(ws, currRow, current_Supervisor,sheetNames):
                     t.value=resValues.get(len(resValues))
                     cell_styling(t,"H")
                     t.fill=PatternFill(start_color='F8B484', end_color='F8B484', fill_type="solid")
-                    meta_cell=org_row+6
+                    meta_row=org_row+3
                     for i in range(0,4):
                         t=ws[dayCol+str(currRow+i)]
                         if(i==0):
-                            t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell)
+                            t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_row)
+                        elif(i==1):
+                            t.value="=SUM(D"+str(currRow+1)+":H"+str(currRow+1)+")"
                         elif(i==2):
-                            t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_cell+1)
+                            t.value="=$"+dayCol+"$"+str(currRow+1)+"/$"+dayCol+"$"+str(meta_row+1)
                         elif(i==3):
                             t.value="=$"+dayCol+"$"+str(currRow)+"-$"+dayCol+"$"+str(currRow+2)
-                        t.font=tableFont
-                        t.alignment=alignCenter
-                        t.border=thin_border
-        currRow+=24
+                        cell_styling(t,"T")
+        currRow+=25
     print("\nCompleted Production Section Creation...")
 
 
@@ -418,7 +440,7 @@ def inputIDname(ws,iDs,employeeNames,effList,Departments,depCount,firstEntry):
                     cell_styling(t,"T")
                 elif(col==3):
                     t.value=employeeNames[count]
-                    cell_styling(t,"T")
+                    cell_styling(t,"H")
                     count+=1
                 else:
                     t.value=float(effList[count])
